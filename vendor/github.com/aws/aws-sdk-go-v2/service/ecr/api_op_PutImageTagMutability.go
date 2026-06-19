@@ -6,15 +6,15 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Updates the image tag mutability settings for the specified repository. For
-// more information, see Image tag mutability (https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-tag-mutability.html)
-// in the Amazon Elastic Container Registry User Guide.
+// more information, see [Image tag mutability]in the Amazon Elastic Container Registry User Guide.
+//
+// [Image tag mutability]: https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-tag-mutability.html
 func (c *Client) PutImageTagMutability(ctx context.Context, params *PutImageTagMutabilityInput, optFns ...func(*Options)) (*PutImageTagMutabilityOutput, error) {
 	if params == nil {
 		params = &PutImageTagMutabilityInput{}
@@ -44,6 +44,10 @@ type PutImageTagMutabilityInput struct {
 	// This member is required.
 	RepositoryName *string
 
+	// A list of filters that specify which image tags should be excluded from the
+	// image tag mutability setting being applied.
+	ImageTagMutabilityExclusionFilters []types.ImageTagMutabilityExclusionFilter
+
 	// The Amazon Web Services account ID associated with the registry that contains
 	// the repository in which to update the image tag mutability settings. If you do
 	// not specify a registry, the default registry is assumed.
@@ -56,6 +60,10 @@ type PutImageTagMutabilityOutput struct {
 
 	// The image tag mutability setting for the repository.
 	ImageTagMutability types.ImageTagMutability
+
+	// The list of filters that specify which image tags are excluded from the
+	// repository's image tag mutability setting.
+	ImageTagMutabilityExclusionFilters []types.ImageTagMutabilityExclusionFilter
 
 	// The registry ID associated with the request.
 	RegistryId *string
@@ -91,25 +99,28 @@ func (c *Client) addOperationPutImageTagMutabilityMiddlewares(stack *middleware.
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options, c); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
+		return err
+	}
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
 	if err = addClientUserAgent(stack, options); err != nil {
@@ -124,13 +135,19 @@ func (c *Client) addOperationPutImageTagMutabilityMiddlewares(stack *middleware.
 	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = addOpPutImageTagMutabilityValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opPutImageTagMutability(options.Region), middleware.Before); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -143,6 +160,15 @@ func (c *Client) addOperationPutImageTagMutabilityMiddlewares(stack *middleware.
 		return err
 	}
 	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addInterceptBeforeRetryLoop(stack, options); err != nil {
+		return err
+	}
+	if err = addInterceptAttempt(stack, options); err != nil {
+		return err
+	}
+	if err = addInterceptors(stack, options); err != nil {
 		return err
 	}
 	return nil

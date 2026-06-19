@@ -7,15 +7,15 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
-	awssession "github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ecr"
+	"github.com/aws/aws-sdk-go/aws"                    //lint:ignore SA1019 - need tot bump to aws-sdk-go-v2
+	"github.com/aws/aws-sdk-go/aws/credentials"        //lint:ignore SA1019 - need tot bump to aws-sdk-go-v2
+	"github.com/aws/aws-sdk-go/aws/endpoints"          //lint:ignore SA1019 - need tot bump to aws-sdk-go-v2
+	awssession "github.com/aws/aws-sdk-go/aws/session" //lint:ignore SA1019 - need tot bump to aws-sdk-go-v2
+	"github.com/aws/aws-sdk-go/service/ecr"            //lint:ignore SA1019 - need tot bump to aws-sdk-go-v2
 	ecrapi "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
 )
 
-const ECR_REPO_REGEX = `[a-zA-Z0-9][a-zA-Z0-9_-]*\.dkr\.ecr\.[a-zA-Z0-9][a-zA-Z0-9_-]*\.amazonaws\.com(\.cn)?[^ ]*`
+const ECR_REPO_REGEX = `[a-zA-Z0-9][a-zA-Z0-9_-]*\.dkr\.ecr(-fips)?\.[a-zA-Z0-9][a-zA-Z0-9_-]*\.amazonaws\.com(\.cn)?[^ ]*`
 
 //go:generate counterfeiter -o fakes/fake_ecrhelper.go . ECRHelper
 type ECRHelper interface {
@@ -54,9 +54,12 @@ func (h ecrHelper) GetECRCredentials(registryURL string, username string, passwo
 		return "", "", err
 	}
 
-	awsSession := awssession.New(&aws.Config{
+	awsSession, err := awssession.NewSession(&aws.Config{
 		Credentials: credentials.NewStaticCredentials(username, password, ""),
 	})
+	if err != nil {
+		return "", "", err
+	}
 
 	awsConfig := &aws.Config{Region: aws.String(registry.Region)}
 	if registry.FIPS {
@@ -73,9 +76,6 @@ func (h ecrHelper) GetECRCredentials(registryURL string, username string, passwo
 	ecrClient := ecr.New(awsSession, awsConfig)
 
 	input := &ecr.GetAuthorizationTokenInput{}
-	if registry.ID != "" {
-		input.RegistryIds = []*string{aws.String(registry.ID)}
-	}
 	output, err := ecrClient.GetAuthorizationToken(input)
 	if err != nil {
 		return "", "", err
