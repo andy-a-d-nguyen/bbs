@@ -6,7 +6,7 @@ code.cloudfoundry.org/auctioneer/auctioneerfakes
 ## explicit; go 1.26.2
 code.cloudfoundry.org/bbs/encryption
 code.cloudfoundry.org/bbs/encryption/encryptionfakes
-# code.cloudfoundry.org/bbs/format v1.4.0
+# code.cloudfoundry.org/bbs/format v1.8.0
 ## explicit; go 1.26.2
 code.cloudfoundry.org/bbs/format
 # code.cloudfoundry.org/bbs/models v1.4.0
