@@ -6,7 +6,7 @@ require (
 	code.cloudfoundry.org/auctioneer v0.0.0-20250910193354-1ef7d6c9eefe
 	code.cloudfoundry.org/bbs/encryption v1.8.0
 	code.cloudfoundry.org/bbs/format v1.8.0
-	code.cloudfoundry.org/bbs/models v1.4.0
+	code.cloudfoundry.org/bbs/models v1.6.0
 	code.cloudfoundry.org/cfhttp/v2 v2.82.0
 	code.cloudfoundry.org/clock v1.75.0
 	code.cloudfoundry.org/debugserver v0.102.0
